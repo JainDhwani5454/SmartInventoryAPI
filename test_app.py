@@ -1,4 +1,3 @@
-
 import json
 import app as inventory_app
 
@@ -8,7 +7,9 @@ def prepare_database(monkeypatch, tmp_path):
     test_file.write_text("[]", encoding="utf-8")
 
     monkeypatch.setattr(
-        inventory_app, "DB_FILE", test_file
+        inventory_app,
+        "DB_FILE",
+        str(test_file)
     )
 
     return inventory_app.app.test_client()
@@ -47,7 +48,6 @@ def test_add_item(monkeypatch, tmp_path):
     assert response.status_code == 201
     assert response.get_json()["success"] is True
 
-    # Verify the data was saved
     saved_data = json.loads(
         (tmp_path / "inventory.json").read_text(encoding="utf-8")
     )
@@ -71,3 +71,8 @@ def test_duplicate_product(monkeypatch, tmp_path):
 
     assert first_response.status_code == 201
     assert second_response.status_code == 409
+
+    response_json = second_response.get_json()
+
+    assert response_json["success"] is False
+    assert "already exists" in response_json["message"]
